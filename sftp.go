@@ -103,7 +103,12 @@ func (p *Sftp) UploadAFile(path, filename string) (counted int, err error) {
 	}
 	defer c.Close()
 
-	remoteFile, err := c.Create(fmt.Sprint(fmt.Sprint(p.targetFolder, p.filename)))
+	filen := filename
+	if p.filename != "" {
+		filen = p.filename
+	}
+
+	remoteFile, err := c.Create(fmt.Sprint(fmt.Sprint(p.targetFolder, filen)))
 	if err != nil {
 		return 0, err
 	}
