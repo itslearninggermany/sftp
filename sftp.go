@@ -8,14 +8,14 @@ import (
 )
 
 type Sftp struct {
-	username string
-	password string
-	server string
-	filename string
+	username     string
+	password     string
+	server       string
+	filename     string
+	targetFolder string
 }
 
-
-func NewSFTPUpload (username, password, server string) *Sftp{
+func NewSFTPUpload(username, password, server string) *Sftp {
 	out := new(Sftp)
 	out.username = username
 	out.password = password
@@ -23,16 +23,22 @@ func NewSFTPUpload (username, password, server string) *Sftp{
 	return out
 }
 
-func (p *Sftp) setFilenameOnServer (filename string) *Sftp {
+func (p *Sftp) setFilenameOnServer(filename string) *Sftp {
 	p.filename = filename
+	return p
+
+}
+
+func (p *Sftp) setTargetFolder(path string) *Sftp {
+	p.targetFolder = path
 	return p
 
 }
 
 /*
 stores the contend on the sftp-server
- */
-func (p *Sftp) UploadContent (uploadcontent []byte) (counted int, err error){
+*/
+func (p *Sftp) UploadContent(uploadcontent []byte) (counted int, err error) {
 	config := &ssh.ClientConfig{
 		User:            p.username,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -44,13 +50,13 @@ func (p *Sftp) UploadContent (uploadcontent []byte) (counted int, err error){
 	config.SetDefaults()
 	sshConn, err := ssh.Dial("tcp", p.server+":22", config) //sftpServer
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	defer sshConn.Close()
 
 	c, err := sftp.NewClient(sshConn)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	defer c.Close()
 
@@ -58,25 +64,24 @@ func (p *Sftp) UploadContent (uploadcontent []byte) (counted int, err error){
 		p.filename = "upload.txt"
 	}
 	// Uploading the file
-	remoteFile, err := c.Create(p.filename)
-	//Start Error-Handling
-	//1. Log error
+
+	remoteFile, err := c.Create(fmt.Sprint(fmt.Sprint(p.targetFolder, p.filename)))
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 
 	counted, err = remoteFile.Write(uploadcontent)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 
-	return counted,err
+	return counted, err
 }
 
 /*
 upload a file to sftpserver
- */
-func (p *Sftp) UploadAFile (path,filename string) (counted int, err error) {
+*/
+func (p *Sftp) UploadAFile(path, filename string) (counted int, err error) {
 	config := &ssh.ClientConfig{
 		User:            p.username,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -88,28 +93,28 @@ func (p *Sftp) UploadAFile (path,filename string) (counted int, err error) {
 	config.SetDefaults()
 	sshConn, err := ssh.Dial("tcp", p.server+":22", config) //sftpServer
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	defer sshConn.Close()
 
 	c, err := sftp.NewClient(sshConn)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	defer c.Close()
 
-	remoteFile, err := c.Create(p.filename)
+	remoteFile, err := c.Create(fmt.Sprint(fmt.Sprint(p.targetFolder, p.filename)))
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 
-	uploadcontent, err := ioutil.ReadFile(fmt.Sprint(path,filename))
+	uploadcontent, err := ioutil.ReadFile(fmt.Sprint(path, filename))
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	counted, err = remoteFile.Write(uploadcontent)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
-	return counted,err
+	return counted, err
 }
