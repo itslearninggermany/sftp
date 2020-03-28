@@ -23,13 +23,13 @@ func NewSFTPUpload(username, password, server string) *Sftp {
 	return out
 }
 
-func (p *Sftp) setFilenameOnServer(filename string) *Sftp {
+func (p *Sftp) SetFilenameOnServer(filename string) *Sftp {
 	p.filename = filename
 	return p
 
 }
 
-func (p *Sftp) setTargetFolder(path string) *Sftp {
+func (p *Sftp) SetTargetFolder(path string) *Sftp {
 	p.targetFolder = path
 	return p
 
